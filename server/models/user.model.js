@@ -2,7 +2,7 @@
 
 const Bcrypt = require('bcryptjs');
 const RestHapi = require('rest-hapi');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const errorHelper = require('../utilities/error-helper');
 
 const permissionAuth = require('../policies/permission-auth.policy');

@@ -43,9 +43,6 @@ const manifest = {
         plugin: 'hapi-auth-jwt2',
       },
       {
-        plugin: 'bell',
-      },
-      {
         plugin: './server/plugins/mailer.plugin',
       },
       {

@@ -1,6 +1,7 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
+const Boom = require('@hapi/boom');
 const Chalk = require('../../node_modules/chalk');
 const RestHapi = require('../../node_modules/rest-hapi');
 const auditLog = require('../policies/audit-log.policy');
@@ -32,6 +33,10 @@ module.exports = function(server, mongoose, logger) {
           model: 'video',
           query: { ytId: videoId, $embed: ['segments.tags'] },
         })).docs[0];
+
+        if (!video) {
+          throw Boom.badRequest('Video not found.');
+        }
 
         const deletedSegments = _.differenceBy(video.segments, segments, 'segmentId');
 
