@@ -1,0 +1,31 @@
+version: "3.4"
+
+networks:
+  backend:
+
+volumes:
+  mongo_data:
+    name: mbt_mongo_data_tests
+
+services:
+  mongo:
+    image: mongo:3.6.4
+    ports:
+      - 27017:27017
+    volumes:
+      - "mongo_data:/data/db"
+    networks:
+      - backend
+
+  seed:
+    build: ../../
+    volumes:
+      - "../../:/backend"
+      - "/backend/node_modules"
+    networks:
+      - backend
+    depends_on:
+      - mongo
+    env_file:
+      - ./.env-tests
+    command: npm run seed

@@ -89,6 +89,11 @@ const config = {
     production: process.env.IPSTACK_ACCESS_KEY,
     $default: process.env.IPSTACK_ACCESS_KEY,
   },
+  youtubeApiKey: {
+    $filter: 'env',
+    production: process.env.YOUTUBE_API_KEY,
+    $default: process.env.YOUTUBE_API_KEY,
+  },
   awsAccessKeyId: {
     $filter: 'env',
     production: process.env.AWS_ACCESS_KEY_ID,
@@ -211,6 +216,11 @@ const config = {
       $default: true,
     },
     enableResponseValidation: {
+      $filter: 'env',
+      production: true,
+      $default: true,
+    },
+    enableResponseFail: {
       $filter: 'env',
       production: true,
       $default: true,

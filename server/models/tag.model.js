@@ -23,7 +23,7 @@ module.exports = function(mongoose) {
           type: 'MANY_MANY',
           alias: 'segments',
           model: 'segment',
-          embedAssociation: true,
+          embedAssociation: false,
           linkingModel: 'segment_tag',
         },
       },

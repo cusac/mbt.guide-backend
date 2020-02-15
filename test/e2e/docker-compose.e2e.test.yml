@@ -1,11 +1,11 @@
 version: "3.4"
 
-volumes:
-  mongo_data:
-    name: mbt_mongo_data
-
 networks:
   backend:
+
+volumes:
+  mongo_data:
+    name: mbt_mongo_data_tests
 
 services:
   mongo:
@@ -16,22 +16,18 @@ services:
       - "mongo_data:/data/db"
     networks:
       - backend
-    restart: always
 
   api:
-    build: ./
+    build: ../../
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     volumes:
-      # Share the entire project except "node_modules". This prevents us from having to COPY the project files
-      #   in the Dockerfile, while still keeping separate node dependency files.
-      - "./:/backend"
+      - "../../:/backend"
       - "/backend/node_modules"
     networks:
       - backend
     depends_on:
       - mongo
     env_file:
-      - ./.env-docker
+      - ./.env-tests
     command: npm start
-    

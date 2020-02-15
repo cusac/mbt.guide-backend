@@ -48,6 +48,7 @@
     "lodash": "4.17.15",
     "lodash-pickdeep": "^1.0.2",
     "mongoose": "5.0.9",
+    "node-fetch": "^2.6.0",
     "node-uuid": "^1.4.7",
     "nodemailer": "^2.6.4",
     "nodemailer-markdown": "^1.0.1",
@@ -56,11 +57,12 @@
     "q": "^1.4.1",
     "request-promise": "^4.2.2",
     "require-dir": "^0.3.2",
-    "rest-hapi": "^1.9.1",
+    "rest-hapi": "^1.9.2",
     "useragent": "^2.3.0",
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
+    "axios": "^0.19.0",
     "babel-eslint": "^8.2.3",
     "commander": "^2.20.0",
     "eslint": "^4.19.1",

@@ -8,5 +8,6 @@
         {
             "ContainerPort": "8080"
         }
-    ]
+    ],
+    "Entrypoint": "npm start"
 }

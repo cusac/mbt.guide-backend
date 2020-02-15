@@ -66,7 +66,7 @@ module.exports = function(mongoose) {
           type: 'MANY_MANY',
           alias: 'tag',
           model: 'tag',
-          embedAssociation: true,
+          embedAssociation: false,
           linkingModel: 'segment_tag',
         },
       },

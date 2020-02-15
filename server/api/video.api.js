@@ -73,6 +73,8 @@ module.exports = function(server, mongoose, logger) {
             RestHapi.deleteMany({
               model: 'segment',
               payload: deletedSegments.map(s => s._id.toString()),
+              restCall: true,
+              credentials: request.auth.credentials,
             })
           );
 
@@ -94,6 +96,8 @@ module.exports = function(server, mongoose, logger) {
               model: 'segment',
               _id: segment._id,
               payload: segment,
+              restCall: true,
+              credentials: request.auth.credentials,
             })
           );
         }
@@ -135,7 +139,6 @@ module.exports = function(server, mongoose, logger) {
         handler: updateVideoSegmentsHandler,
         auth: {
           strategy: authStrategy,
-          scope: ['root'],
         },
         description: `Update the segments of a video. This endpoint is meant to take as payload 
         the desired state of a video's segments. It will then perform the CRUD operations required
