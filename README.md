@@ -58,6 +58,16 @@ Once the app is running point your browser to http://localhost:8080/ to view the
 
 [Back to top](#readme-contents)
 
+## Testing
+
+Currently the majority of the backend tests are e2e tests that rely heavily on scripts and docker
+compose. These can be found in `test/e2e`. 
+
+To run these tests run (from the root directory):
+```bash
+bash run_e2e.tests.sh
+```
+
 ## License
 MIT
 

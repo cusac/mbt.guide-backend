@@ -48,7 +48,7 @@ module.exports = function(mongoose) {
     routeOptions: {
       readAuth: false,
       documentScope: {
-        rootScope: ['root'],
+        rootScope: ['root', 'Admin'],
       },
       authorizeDocumentCreator: true,
       associations: {

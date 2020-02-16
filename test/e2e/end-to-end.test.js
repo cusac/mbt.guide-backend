@@ -3,8 +3,6 @@ const fs = require('fs');
 
 axios.defaults.baseURL = 'http://localhost:' + process.env.SERVER_PORT;
 
-// TODO: Test that users can't update or delete segments belonging to others but admins can
-
 // Replace default serializer with one that works with Joi validation
 axios.defaults.paramsSerializer = function(params) {
   return qs.stringify(params);
@@ -17,6 +15,9 @@ function sleep(ms) {
 jest.setTimeout(10000);
 
 let videoId;
+let token1;
+let token2;
+let response;
 
 describe('test video api', () => {
   beforeAll(async () => {
@@ -42,20 +43,33 @@ describe('test video api', () => {
       method: 'POST',
       url: '/login',
       data: {
+        email: 'test@admin.com',
+        password: 'root',
+      },
+    };
+
+    response = await axios(config);
+
+    token1 = response.data.refreshToken;
+
+    console.log('REFRESH TOKEN1:', token1);
+
+    config = {
+      method: 'POST',
+      url: '/login',
+      data: {
         email: 'test@user.com',
         password: 'root',
       },
     };
 
-    let { data } = await axios(config);
+    response = await axios(config);
 
-    ownerId = data.user._id;
+    token2 = response.data.refreshToken;
 
-    let token = data.refreshToken;
+    console.log('REFRESH TOKEN2:', token2);
 
-    console.log("REFRESH TOKEN:", token)
-
-    axios.defaults.headers.common.Authorization = 'Bearer ' + token;
+    axios.defaults.headers.common.Authorization = 'Bearer ' + token1;
 
     const videoData = JSON.parse(fs.readFileSync('./test/e2e/post-video-1.json'));
 
@@ -65,7 +79,7 @@ describe('test video api', () => {
       data: [videoData],
     };
 
-    let response = await axios(config);
+    response = await axios(config);
 
     videoId = response.data[0]._id;
   });
@@ -126,7 +140,7 @@ describe('test video api', () => {
 
       const response = await axios(config);
 
-      console.log("DATA:", response.data)
+      console.log('DATA:', response.data);
 
       const segment1 = response.data.filter(
         s => s.segmentId === 'aa0a180e-c8ba-4f74-ba52-fd15f3991e4f'
@@ -238,6 +252,245 @@ describe('test video api', () => {
       expect(segment2.tags[0].tag._id).toBe(segment1.tags[0].tag._id);
     });
 
+    test('prevents users from updating other user segments', async () => {
+      expect.assertions(1);
+
+      axios.defaults.headers.common.Authorization = 'Bearer ' + token2;
+
+      let config = {
+        method: 'POST',
+        url: '/update-video-segments',
+        data: {
+          videoId: '_ok27SPHhwA',
+          segments: [
+            {
+              segmentId: 'aa0a180e-c8ba-4f74-ba52-fd15f3991e4f',
+              video: videoId,
+              start: 586,
+              end: 2307.75,
+              title: 'test',
+              description: 'changed description',
+              tags: [
+                {
+                  rank: 11,
+                  tag: {
+                    name: 'fear',
+                  },
+                },
+                {
+                  rank: 6,
+                  tag: {
+                    name: 'love',
+                  },
+                },
+                {
+                  rank: 3,
+                  tag: {
+                    name: 'thought',
+                  },
+                },
+              ],
+              pristine: false,
+            },
+          ],
+        },
+      };
+
+      try {
+        response = await axios(config);
+      } catch (err) {
+        response = err;
+      }
+
+      expect(response.response.data.statusCode).toBe(401);
+    });
+
+    test('allows segments from multiple users', async () => {
+      expect.assertions(6);
+
+      let config = {
+        method: 'POST',
+        url: '/update-video-segments',
+        data: {
+          videoId: '_ok27SPHhwA',
+          segments: [
+            {
+              segmentId: 'aa0a180e-c8ba-4f74-ba52-fd15f3991e4f',
+              video: videoId,
+              start: 586,
+              end: 2307.75,
+              title: 'test',
+              description: 'new description',
+              tags: [
+                {
+                  rank: 11,
+                  tag: {
+                    name: 'fear',
+                  },
+                },
+                {
+                  rank: 6,
+                  tag: {
+                    name: 'love',
+                  },
+                },
+                {
+                  rank: 3,
+                  tag: {
+                    name: 'thought',
+                  },
+                },
+              ],
+              pristine: true,
+            },
+            {
+              segmentId: 'cf04dfd8-3e4a-4950-8c22-c28f5b35be9a',
+              video: videoId,
+              start: 553,
+              end: 2330,
+              title: 'test2',
+              description: '',
+              tags: [
+                {
+                  rank: 11,
+                  tag: {
+                    name: 'fear',
+                  },
+                },
+              ],
+              pristine: true,
+            },
+            {
+              segmentId: 'af04dfd8-3e4a-4950-8c22-c28f5b35be9f',
+              video: videoId,
+              start: 500,
+              end: 2400,
+              title: 'lowly user segment',
+              description: 'yay',
+              tags: [
+                {
+                  rank: 11,
+                  tag: {
+                    name: 'love',
+                  },
+                },
+              ],
+              pristine: false,
+            },
+          ],
+        },
+      };
+
+      const response = await axios(config);
+
+      const segment1 = response.data.filter(
+        s => s.segmentId === 'af04dfd8-3e4a-4950-8c22-c28f5b35be9f'
+      )[0];
+
+      segment1.tags.sort((a, b) => b.rank - a.rank);
+
+      expect(segment1._id).toBeDefined();
+      expect(segment1.end).toBe(2400);
+      expect(segment1.title).toBe('lowly user segment');
+      expect(segment1.description).toBe('yay');
+      expect(segment1.tags[0].rank).toBe(11);
+      expect(segment1.tags[0].tag.name).toBe('love');
+    });
+
+    test('allows admins to edit other users segments', async () => {
+      expect.assertions(6);
+
+      axios.defaults.headers.common.Authorization = 'Bearer ' + token1;
+      
+      let config = {
+        method: 'POST',
+        url: '/update-video-segments',
+        data: {
+          videoId: '_ok27SPHhwA',
+          segments: [
+            {
+              segmentId: 'aa0a180e-c8ba-4f74-ba52-fd15f3991e4f',
+              video: videoId,
+              start: 586,
+              end: 2307.75,
+              title: 'test',
+              description: 'new description',
+              tags: [
+                {
+                  rank: 11,
+                  tag: {
+                    name: 'fear',
+                  },
+                },
+                {
+                  rank: 6,
+                  tag: {
+                    name: 'love',
+                  },
+                },
+                {
+                  rank: 3,
+                  tag: {
+                    name: 'thought',
+                  },
+                },
+              ],
+              pristine: true,
+            },
+            {
+              segmentId: 'cf04dfd8-3e4a-4950-8c22-c28f5b35be9a',
+              video: videoId,
+              start: 553,
+              end: 2330,
+              title: 'test2',
+              description: '',
+              tags: [
+                {
+                  rank: 11,
+                  tag: {
+                    name: 'fear',
+                  },
+                },
+              ],
+              pristine: true,
+            },
+            {
+              segmentId: 'af04dfd8-3e4a-4950-8c22-c28f5b35be9f',
+              video: videoId,
+              start: 500,
+              end: 2400,
+              title: 'updated by admin',
+              description: 'yay',
+              tags: [
+                {
+                  rank: 11,
+                  tag: {
+                    name: 'love',
+                  },
+                },
+              ],
+              pristine: false,
+            },
+          ],
+        },
+      };
+
+      const response = await axios(config);
+
+      const segment1 = response.data.filter(
+        s => s.segmentId === 'af04dfd8-3e4a-4950-8c22-c28f5b35be9f'
+      )[0];
+
+      segment1.tags.sort((a, b) => b.rank - a.rank);
+
+      expect(segment1._id).toBeDefined();
+      expect(segment1.end).toBe(2400);
+      expect(segment1.title).toBe('updated by admin');
+      expect(segment1.description).toBe('yay');
+      expect(segment1.tags[0].rank).toBe(11);
+      expect(segment1.tags[0].tag.name).toBe('love');
+    });
+
     test('can delete segments', async () => {
       expect.assertions(10);
 
@@ -275,7 +528,7 @@ describe('test video api', () => {
                 },
               ],
               pristine: true,
-            }
+            },
           ],
         },
       };

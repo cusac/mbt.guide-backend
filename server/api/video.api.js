@@ -102,7 +102,15 @@ module.exports = function(server, mongoose, logger) {
           );
         }
 
-        await Promise.all(promises);
+        const results = await Promise.all(promises);
+
+        for (const result of results) {
+          if (result && result.error && result.statusCode === 403) {
+            throw Boom.unauthorized(
+              'You are not authorized to edit one or more of the submitted segments'
+            );
+          }
+        }
 
         const savedSegments = (await RestHapi.list({
           model: 'video',

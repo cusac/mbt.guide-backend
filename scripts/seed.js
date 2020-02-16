@@ -312,6 +312,9 @@ const PERMISSION_STATES = Config.get('/constants/PERMISSION_STATES');
       'uploadProfileImage',
       'receiveNotifications',
       'updateNotification',
+      'createSegment',
+      'updateSegment',
+      'deleteSegment',
     ];
 
     let userDocumentPermissions = permissions
