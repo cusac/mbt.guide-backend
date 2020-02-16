@@ -315,6 +315,7 @@ const PERMISSION_STATES = Config.get('/constants/PERMISSION_STATES');
       'createSegment',
       'updateSegment',
       'deleteSegment',
+      'createVideo',
     ];
 
     let userDocumentPermissions = permissions
