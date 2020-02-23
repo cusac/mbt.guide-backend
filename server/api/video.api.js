@@ -106,7 +106,7 @@ module.exports = function(server, mongoose, logger) {
 
         for (const result of results) {
           if (result && result.error && result.statusCode === 403) {
-            throw Boom.unauthorized(
+            throw Boom.forbidden(
               'You are not authorized to edit one or more of the submitted segments'
             );
           }
