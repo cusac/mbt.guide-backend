@@ -302,7 +302,7 @@ describe('test video api', () => {
         response = err;
       }
 
-      expect(response.response.data.statusCode).toBe(401);
+      expect(response.response.data.statusCode).toBe(403);
     });
 
     test('allows segments from multiple users', async () => {
