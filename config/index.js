@@ -227,8 +227,8 @@ const config = {
     },
     enableResponseFail: {
       $filter: 'env',
-      production: true,
-      $default: true,
+      production: false,
+      $default: false,
     },
     enableTextSearch: {
       $filter: 'env',
