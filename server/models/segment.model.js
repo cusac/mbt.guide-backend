@@ -116,7 +116,7 @@ module.exports = function(mongoose) {
         childId: t._id,
         rank: currentTags.find(tt => tt.tag.name === t.name).rank,
       }));
-      const tagsToRemove = deletedTags.map(t => t._id);
+      const tagsToRemove = deletedTags.map(t => t.tag._id);
 
       // Add tags
       !_.isEmpty(tagsToAdd) &&

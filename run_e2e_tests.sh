@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# This is the main script for running all the e2e tests
+
 source ./test/e2e/.env-tests
 export SERVER_PORT=${SERVER_PORT}
 export COMPOSE_PROJECT_NAME=mbt_guide_backend_tests

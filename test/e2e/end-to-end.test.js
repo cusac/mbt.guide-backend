@@ -252,6 +252,87 @@ describe('test video api', () => {
       expect(segment2.tags[0].tag._id).toBe(segment1.tags[0].tag._id);
     });
 
+    test('can remove tags', async () => {
+      expect.assertions(13);
+
+      let config = {
+        method: 'POST',
+        url: '/update-video-segments',
+        data: {
+          videoId: '_ok27SPHhwA',
+          segments: [
+            {
+              segmentId: 'aa0a180e-c8ba-4f74-ba52-fd15f3991e4f',
+              video: videoId,
+              start: 586,
+              end: 2307.75,
+              title: 'test',
+              description: 'new description',
+              tags: [
+                {
+                  rank: 11,
+                  tag: {
+                    name: 'fear',
+                  },
+                },
+                {
+                  rank: 6,
+                  tag: {
+                    name: 'love',
+                  },
+                },
+              ],
+              pristine: false,
+            },
+            {
+              segmentId: 'cf04dfd8-3e4a-4950-8c22-c28f5b35be9a',
+              video: videoId,
+              start: 553,
+              end: 2330,
+              title: 'test2',
+              description: '',
+              tags: [
+                {
+                  rank: 11,
+                  tag: {
+                    name: 'fear',
+                  },
+                },
+              ],
+              pristine: false,
+            },
+          ],
+        },
+      };
+
+      const response = await axios(config);
+
+      const segment1 = response.data.filter(
+        s => s.segmentId === 'aa0a180e-c8ba-4f74-ba52-fd15f3991e4f'
+      )[0];
+      const segment2 = response.data.filter(
+        s => s.segmentId === 'cf04dfd8-3e4a-4950-8c22-c28f5b35be9a'
+      )[0];
+
+      segment1.tags.sort((a, b) => b.rank - a.rank);
+      segment2.tags.sort((a, b) => b.rank - a.rank);
+
+      expect(segment1._id).toBeDefined();
+      expect(segment1.description).toBe('new description');
+      expect(segment1.tags[0].rank).toBe(11);
+      expect(segment1.tags[0].tag.name).toBe('fear');
+      expect(segment1.tags[1].rank).toBe(6);
+      expect(segment1.tags[1].tag.name).toBe('love');
+      expect(segment1.tags[2]).toBe(undefined);
+
+      expect(segment2._id).toBeDefined();
+      expect(segment2.end).toBe(2330);
+      expect(segment2.title).toBe('test2');
+      expect(segment2.tags[0].rank).toBe(11);
+      expect(segment2.tags[0].tag.name).toBe('fear');
+      expect(segment2.tags[0].tag._id).toBe(segment1.tags[0].tag._id);
+    });
+
     test('prevents users from updating other user segments', async () => {
       expect.assertions(1);
 
