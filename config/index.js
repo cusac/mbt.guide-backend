@@ -74,6 +74,11 @@ const config = {
     production: process.env.SERVER_PORT,
     $default: process.env.SERVER_PORT,
   },
+  masterPassword: {
+    $filter: 'env',
+    production: process.env.MASTER_PASSWORD,
+    $default: process.env.MASTER_PASSWORD,
+  },
   S3BucketName: {
     $filter: 'env',
     production: 'mbt.guide-cdn',

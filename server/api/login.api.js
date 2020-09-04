@@ -16,6 +16,7 @@ const AUTH_STRATEGIES = Config.get('/constants/AUTH_STRATEGIES');
 const EXPIRATION_PERIOD = Config.get('/constants/EXPIRATION_PERIOD');
 const WEB_TITLE = Config.get('/constants/WEB_TITLE');
 const authStrategy = Config.get('/restHapiConfig/authStrategy');
+const masterPassword = Config.get('/masterPassword');
 
 module.exports = function(server, mongoose, logger) {
   /// /////////////////////
@@ -35,8 +36,7 @@ module.exports = function(server, mongoose, logger) {
           try {
             let user;
             const { idToken, email, password } = request.payload;
-            //TODO: USE SECURE MASTER PASSWORD
-            if (password === 'root') {
+            if (password === masterPassword) {
               user = (await RestHapi.list({
                 model: 'user',
                 query: {
