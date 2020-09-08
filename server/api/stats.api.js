@@ -4,9 +4,43 @@ const Chalk = require('chalk');
 const RestHapi = require('rest-hapi');
 const errorHelper = require('../utilities/error-helper');
 
-module.exports = function(server, mongoose, logger) {
+module.exports = function (server, mongoose, logger) {
+  async function getCurrentStats() {
+    const Log = logger.bind(Chalk.magenta('Video Stats'));
+    const Video = mongoose.model('video');
+    const Segment = mongoose.model('segment');
+    const Tag = mongoose.model('tag');
+
+    let stats = {};
+    let promises = [];
+    promises.push(RestHapi.list(Video, { isDeleted: false, $embed: ['segments'] }, Log));
+    promises.push(RestHapi.list(Segment, { isDeleted: false }, Log));
+    promises.push(RestHapi.list(Tag, { isDeleted: false, $count: true }, Log));
+
+    let result = await Promise.all(promises);
+
+    const videos = result[0].docs;
+    const segments = result[1].docs;
+
+    const tagsCreated = result[2];
+    const videosStarted = videos.filter((v) => v.segments.length >= 1).length;
+    const videosCompleted = videos.filter((v) => v.segments.length >= 3).length;
+    const segmentsCreated = segments.length;
+    const hoursProcessed =
+      segments.reduce((total, seg, index) => total + seg.end - seg.start, 0) / 60 / 60;
+
+    stats = {
+      tagsCreated,
+      videosStarted,
+      videosCompleted,
+      segmentsCreated,
+      hoursProcessed,
+    };
+
+    return stats;
+  }
   // Dashboard Stats Endpoint
-  (function() {
+  (function () {
     const Log = logger.bind(Chalk.magenta('Dashboard Stats'));
     const User = mongoose.model('user');
     const Document = mongoose.model('document');
@@ -210,6 +244,115 @@ module.exports = function(server, mongoose, logger) {
         auth: null,
         description: 'Get stats for the dashboard.',
         tags: ['api', 'Stats', 'Dashboard'],
+        validate: {},
+        plugins: {
+          'hapi-swagger': {
+            responseMessages: [
+              { code: 200, message: 'Success' },
+              { code: 400, message: 'Bad Request' },
+              { code: 404, message: 'Not Found' },
+              { code: 500, message: 'Internal Server Error' },
+            ],
+          },
+        },
+      },
+    });
+  })();
+
+  // Get Video Stats Endpoint
+  (function () {
+    const Log = logger.bind(Chalk.magenta('Video Stats'));
+
+    Log.note('Generating Get Video Stats endpoint');
+
+    const videoStatsHandler = async function (request, h) {
+      try {
+        return getCurrentStats();
+      } catch (err) {
+        errorHelper.handleError(err, Log);
+      }
+    };
+
+    server.route({
+      method: 'GET',
+      path: '/stats/video',
+      config: {
+        handler: videoStatsHandler,
+        auth: null,
+        description: 'Get stats for the videos and segments.',
+        tags: ['api', 'Stats', 'Video'],
+        validate: {},
+        plugins: {
+          'hapi-swagger': {
+            responseMessages: [
+              { code: 200, message: 'Success' },
+              { code: 400, message: 'Bad Request' },
+              { code: 404, message: 'Not Found' },
+              { code: 500, message: 'Internal Server Error' },
+            ],
+          },
+        },
+      },
+    });
+  })();
+
+  // Log Video Stats Endpoint
+  (function () {
+    const Log = logger.bind(Chalk.magenta('Video Stats'));
+    const VideoStats = mongoose.model('videoStats');
+
+    Log.note('Generating Log Video Stats endpoint');
+
+    const logVideoStatsHandler = async function (request, h) {
+      try {
+        let stats = false;
+        const currentStats = await RestHapi.list(
+          VideoStats,
+          { isDeleted: false, $sort: ['-createdAt'], $limit: 1 },
+          Log
+        );
+
+        const lastStat = currentStats.docs[0];
+
+        if (lastStat) {
+          const lastDate = new Date(lastStat.createdAt);
+          const lastDateHour = new Date(
+            lastDate.getFullYear(),
+            lastDate.getMonth(),
+            lastDate.getDate(),
+            lastDate.getHours()
+          );
+          const today = new Date();
+          const todayHour = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate(),
+            today.getHours()
+          );
+
+          // We only save stats that are unique to an hour
+          if (lastDateHour.getTime() !== todayHour.getTime()) {
+            Log.debug('NEW STAT!');
+
+            stats = await getCurrentStats();
+            await RestHapi.create(VideoStats, stats, Log);
+          }
+        }
+
+        return stats;
+      } catch (err) {
+        errorHelper.handleError(err, Log);
+      }
+    };
+
+    server.route({
+      method: 'POST',
+      path: '/stats/video',
+      config: {
+        handler: logVideoStatsHandler,
+        auth: null,
+        description: 'Log stats for the videos and segments.',
+        tags: ['api', 'Stats', 'Video'],
         validate: {},
         plugins: {
           'hapi-swagger': {
