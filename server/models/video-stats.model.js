@@ -25,6 +25,10 @@ module.exports = function (mongoose) {
         type: Types.Number,
         required: true,
       },
+      mostUsedTags: {
+        type: [Types.Object],
+        required: true,
+      },
     },
     { collection: modelName }
   );

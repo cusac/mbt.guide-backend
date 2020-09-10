@@ -15,19 +15,27 @@ module.exports = function (server, mongoose, logger) {
     let promises = [];
     promises.push(RestHapi.list(Video, { isDeleted: false, $embed: ['segments'] }, Log));
     promises.push(RestHapi.list(Segment, { isDeleted: false }, Log));
-    promises.push(RestHapi.list(Tag, { isDeleted: false, $count: true }, Log));
+    promises.push(RestHapi.list(Tag, { isDeleted: false, $embed: ['segments'] }, Log));
 
     let result = await Promise.all(promises);
 
     const videos = result[0].docs;
     const segments = result[1].docs;
+    const tags = result[2].docs;
 
-    const tagsCreated = result[2];
+    tags.sort((a, b) => b.segments.length - a.segments.length);
+
+    const tagsCreated = tags.length;
     const videosStarted = videos.filter((v) => v.segments.length >= 1).length;
     const videosCompleted = videos.filter((v) => v.segments.length >= 3).length;
     const segmentsCreated = segments.length;
     const hoursProcessed =
       segments.reduce((total, seg, index) => total + seg.end - seg.start, 0) / 60 / 60;
+
+    const mostUsedTags = [];
+    for (let i = 0; i < 10; i++) {
+      mostUsedTags.push({ tag: tags[i].name, segmentCount: tags[i].segments.length });
+    }
 
     stats = {
       tagsCreated,
@@ -35,6 +43,7 @@ module.exports = function (server, mongoose, logger) {
       videosCompleted,
       segmentsCreated,
       hoursProcessed,
+      mostUsedTags,
     };
 
     return stats;
@@ -50,7 +59,7 @@ module.exports = function (server, mongoose, logger) {
 
     Log.note('Generating Dashboard Stats endpoint');
 
-    const dashboardStatsHandler = async function(request, h) {
+    const dashboardStatsHandler = async function (request, h) {
       try {
         let promises = [];
         let stats = {};
