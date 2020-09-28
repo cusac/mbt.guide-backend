@@ -15,7 +15,7 @@ module.exports = function (server, mongoose, logger) {
     const Segment = mongoose.model('segment');
     Log.note('Generating Search Segments endpoint');
 
-    const videoStatsHandler = async function (request, h) {
+    const searchSegmentsHandler = async function (request, h) {
       try {
         let url = `https://search-mbt-dev-f4f7vbrpf7v77zoekzjl53veou.us-east-2.es.amazonaws.com/segment/_search`;
 
@@ -66,7 +66,7 @@ module.exports = function (server, mongoose, logger) {
       method: 'GET',
       path: '/search/segments',
       config: {
-        handler: videoStatsHandler,
+        handler: searchSegmentsHandler,
         auth: null,
         description: 'Search for segments.',
         tags: ['api', 'Search', 'Segments'],
