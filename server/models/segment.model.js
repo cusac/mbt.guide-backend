@@ -170,6 +170,30 @@ module.exports = function (mongoose) {
           payload: { segmentCount: allTagsToCountSegmentsFor[i].segments.length },
         });
       }
+
+      //Delete orphan tags
+      const possibleOrphanTags = (
+        await RestHapi.list({
+          model: 'tag',
+          query: {
+            _id: tagsToRemove.map((t) => t.toString()),
+            isDeleted: false,
+            $embed: ['segments'],
+          },
+        })
+      ).docs;
+      //console.log('possibleOrphanTags:', possibleOrphanTags);
+      for (let i = 0; i < possibleOrphanTags.length; i++) {
+        //console.log(possibleOrphanTags[i]._id, possibleOrphanTags[i].segments.length);
+        if (possibleOrphanTags[i].segments.length < 1) {
+          //console.log('Deleting orphan tag: ', possibleOrphanTags[i]._id.toString());
+          await RestHapi.deleteOne({
+            model: 'tag',
+            _id: possibleOrphanTags[i]._id.toString(),
+            restCall: true,
+          });
+        }
+      }
     },
   };
 
