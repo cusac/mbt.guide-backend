@@ -1,5 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
+const qs = require('querystring')
 
 axios.defaults.baseURL = 'http://localhost:' + process.env.SERVER_PORT;
 
@@ -44,7 +45,7 @@ describe('test video api', () => {
       url: '/login',
       data: {
         email: 'test@admin.com',
-        password: 'root',
+        password: process.env.MASTER_PASSWORD,
       },
     };
 
@@ -52,22 +53,18 @@ describe('test video api', () => {
 
     token1 = response.data.refreshToken;
 
-    console.log('REFRESH TOKEN1:', token1);
-
     config = {
       method: 'POST',
       url: '/login',
       data: {
         email: 'test@user.com',
-        password: 'root',
+        password: process.env.MASTER_PASSWORD,
       },
     };
 
     response = await axios(config);
 
     token2 = response.data.refreshToken;
-
-    console.log('REFRESH TOKEN2:', token2);
 
     axios.defaults.headers.common.Authorization = 'Bearer ' + token1;
 
@@ -86,7 +83,7 @@ describe('test video api', () => {
 
   describe('update-video-segments', () => {
     test('can create new segments', async () => {
-      expect.assertions(9);
+      expect.assertions(11);
 
       let config = {
         method: 'POST',
@@ -105,13 +102,13 @@ describe('test video api', () => {
                 {
                   rank: 11,
                   tag: {
-                    name: 'love',
+                    name: '  #Love', // This should be normalized
                   },
                 },
                 {
                   rank: 6,
                   tag: {
-                    name: 'fear',
+                    name: '.fear  ', // This should be normalized
                   },
                 },
               ],
@@ -140,8 +137,6 @@ describe('test video api', () => {
 
       const response = await axios(config);
 
-      console.log('DATA:', response.data);
-
       const segment1 = response.data.filter(
         s => s.segmentId === 'aa0a180e-c8ba-4f74-ba52-fd15f3991e4f'
       )[0];
@@ -155,8 +150,10 @@ describe('test video api', () => {
       expect(segment1._id).toBeDefined();
       expect(segment1.tags[0].rank).toBe(11);
       expect(segment1.tags[0].tag.name).toBe('love');
+      expect(segment1.tags[0].tag.segmentCount).toBe(1);
       expect(segment1.tags[1].rank).toBe(6);
       expect(segment1.tags[1].tag.name).toBe('fear');
+      expect(segment1.tags[1].tag.segmentCount).toBe(2);
 
       expect(segment2._id).toBeDefined();
       expect(segment2.tags[0].rank).toBe(11);
@@ -253,7 +250,7 @@ describe('test video api', () => {
     });
 
     test('can remove tags', async () => {
-      expect.assertions(13);
+      expect.assertions(15);
 
       let config = {
         method: 'POST',
@@ -307,6 +304,15 @@ describe('test video api', () => {
 
       const response = await axios(config);
 
+
+      config = {
+        method: 'GET',
+        url: '/tag',
+        params: { 'name': 'thought', '$embed': 'segments' },
+      };
+
+      removedTag = (await axios(config)).data.docs[0];
+
       const segment1 = response.data.filter(
         s => s.segmentId === 'aa0a180e-c8ba-4f74-ba52-fd15f3991e4f'
       )[0];
@@ -331,6 +337,9 @@ describe('test video api', () => {
       expect(segment2.tags[0].rank).toBe(11);
       expect(segment2.tags[0].tag.name).toBe('fear');
       expect(segment2.tags[0].tag._id).toBe(segment1.tags[0].tag._id);
+
+      expect(removedTag.segments.length).toBe(0);
+      expect(removedTag.segmentCount).toBe(0);
     });
 
     test('prevents users from updating other user segments', async () => {
