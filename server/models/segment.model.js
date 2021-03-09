@@ -139,8 +139,18 @@ module.exports = function (mongoose) {
           payload: tagsToRemove,
         }));
 
-      //Update segmentCount for tags.
-      const tagsToCountSegmentsFor = (
+      //Update segmentCount for current and old tags.
+      const oldTagsToCountSegmentsFor = (
+        await RestHapi.list({
+          model: 'tag',
+          query: {
+            name: oldTags.map((t) => t.tag.name),
+            isDeleted: false,
+            $embed: ['segments'],
+          },
+        })
+      ).docs;
+      const currentTagsToCountSegmentsFor = (
         await RestHapi.list({
           model: 'tag',
           query: {
@@ -150,13 +160,14 @@ module.exports = function (mongoose) {
           },
         })
       ).docs;
-      //console.log('tagsToCountSegmentsFor:',tagsToCountSegmentsFor);
-      for (let i = 0; i < tagsToCountSegmentsFor.length; i++) {
-        //console.log(tagsToCountSegmentsFor[i]._id, tagsToCountSegmentsFor[i].segments.length, tagsToCountSegmentsFor[i].segments);
+      const allTagsToCountSegmentsFor = oldTagsToCountSegmentsFor.concat(
+        currentTagsToCountSegmentsFor
+      );
+      for (let i = 0; i < allTagsToCountSegmentsFor.length; i++) {
         let tag = await RestHapi.update({
           model: 'tag',
-          _id: tagsToCountSegmentsFor[i]._id.toString(),
-          payload: { segmentCount: tagsToCountSegmentsFor[i].segments.length },
+          _id: allTagsToCountSegmentsFor[i]._id.toString(),
+          payload: { segmentCount: allTagsToCountSegmentsFor[i].segments.length },
         });
       }
     },
