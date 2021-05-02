@@ -39,6 +39,11 @@ module.exports = function (mongoose) {
         allowOnUpdate: false,
         allowOnCreate: false,
       },
+      views: {
+        description: 'How many times this segment has been viewed.',
+        type: Types.Number,
+        default: 0,
+      },
     },
     { collection: modelName }
   );
