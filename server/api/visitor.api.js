@@ -1,5 +1,6 @@
 'use strict';
 
+const Joi = require('@hapi/joi');
 const Chalk = require('chalk');
 const RestHapi = require('rest-hapi');
 
@@ -9,15 +10,15 @@ const errorHelper = require('../utilities/error-helper');
 
 const Config = require('../../config');
 
-module.exports = function(server, mongoose, logger) {
+module.exports = function (server, mongoose, logger) {
   // Record Visitor Endpoint
-  (function() {
+  (function () {
     const Visitor = mongoose.model('visitor');
     const Log = logger.bind(Chalk.magenta('Visitor'));
 
     Log.note('Generating Record Visitor endpoint');
 
-    const recordVisitorHandler = async function(request, h) {
+    const recordVisitorHandler = async function (request, h) {
       try {
         // Specify the iplocation hosts to prevent issues (Ex: docker cant ping "https://ipaip.co/" by default)
         // let hosts = ['freegeoip.net', 'ipapi.co']
@@ -30,7 +31,16 @@ module.exports = function(server, mongoose, logger) {
         if (result && !result.error) {
           const agent = useragent.parse(request.headers['user-agent']);
 
-          const visitor = Object.assign(result, { browser: agent.family });
+          let site = 'unspecified';
+
+          if (request.payload) {
+            site = request.payload.site;
+          }
+
+          const visitor = Object.assign(result, {
+            browser: agent.family,
+            site,
+          });
 
           return RestHapi.create(Visitor, visitor, Log);
         } else {
@@ -49,7 +59,11 @@ module.exports = function(server, mongoose, logger) {
         auth: null,
         description: 'Create a new visitor record.',
         tags: ['api', 'Visitor'],
-        validate: {},
+        validate: {
+          payload: Joi.object({
+            site: Joi.string(),
+          }).allow(null),
+        },
         plugins: {
           'hapi-swagger': {
             responseMessages: [
