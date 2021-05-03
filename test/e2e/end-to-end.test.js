@@ -20,6 +20,8 @@ let token1;
 let token2;
 let response;
 
+// TODO: Test search endpoint (including mocking aws api)
+
 describe('test video api', () => {
   beforeAll(async () => {
     let config = {
