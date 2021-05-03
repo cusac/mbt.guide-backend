@@ -55,7 +55,7 @@
     "q": "^1.4.1",
     "request-promise": "^4.2.2",
     "require-dir": "^0.3.2",
-    "rest-hapi": "^2.1.0",
+    "rest-hapi": "^2.3.0",
     "useragent": "^2.3.0",
     "zxcvbn": "^4.4.2"
   },

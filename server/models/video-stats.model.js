@@ -37,6 +37,22 @@ module.exports = function (mongoose) {
         type: Types.Number,
         required: true,
       },
+      totalSegmentViews: {
+        type: Types.Number,
+        required: true,
+      },
+      topViewedSegments: {
+        type: [Types.Object],
+        required: true,
+      },
+      totalSearches: {
+        type: Types.Number,
+        required: true,
+      },
+      topSearchTerms: {
+        type: [Types.Object],
+        required: true,
+      },
     },
     { collection: modelName }
   );

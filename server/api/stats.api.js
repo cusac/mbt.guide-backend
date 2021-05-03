@@ -14,6 +14,7 @@ module.exports = function (server, mongoose, logger) {
     const Segment = mongoose.model('segment');
     const Tag = mongoose.model('tag');
     const User = mongoose.model('user');
+    const SearchQuery = mongoose.model('searchQuery');
 
     const key = Config.get('/youtubeApiKey');
 
@@ -24,10 +25,21 @@ module.exports = function (server, mongoose, logger) {
     let stats = {};
     let promises = [];
     promises.push(RestHapi.list(Video, { isDeleted: false, $embed: ['segments'] }, Log));
-    promises.push(RestHapi.list(Segment, { isDeleted: false }, Log));
+    promises.push(
+      RestHapi.list(
+        Segment,
+        {
+          isDeleted: false,
+          $select: ['title', 'segmentId', 'views', 'start', 'end'],
+          $sort: ['-views'],
+        },
+        Log
+      )
+    );
     promises.push(RestHapi.list(Tag, { isDeleted: false, $embed: ['segments'] }, Log));
     promises.push(RestHapi.list(User, { isDeleted: false, $embed: ['segments'] }, Log));
     promises.push((await fetch(ytStatsQuery)).json());
+    promises.push(RestHapi.list(SearchQuery, { isDeleted: false, $sort: ['-queryCount'] }, Log));
 
     let result = await Promise.all(promises);
 
@@ -36,6 +48,7 @@ module.exports = function (server, mongoose, logger) {
     const tags = result[2].docs;
     const users = result[3].docs;
     const ytStats = result[4];
+    const searchQueries = result[5].docs;
 
     tags.sort((a, b) => b.segments.length - a.segments.length);
     users.sort((a, b) => b.segments.length - a.segments.length);
@@ -46,14 +59,19 @@ module.exports = function (server, mongoose, logger) {
     const segmentsCreated = segments.length;
     const hoursProcessed =
       segments.reduce((total, seg, index) => total + seg.end - seg.start, 0) / 60 / 60;
+    const totalSegmentViews = segments.reduce((total, seg, index) => total + (seg.views || 0), 0);
+    const totalSearches = searchQueries.reduce(
+      (total, query, index) => total + (query.queryCount || 0),
+      0
+    );
 
     const mostUsedTags = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 10 && i < tags.length; i++) {
       mostUsedTags.push({ tag: tags[i].name, segmentCount: tags[i].segments.length });
     }
 
     const topContributers = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 10 && i < users.length; i++) {
       const hoursProcessed =
         users[i].segments.reduce((total, seg, index) => total + seg.end - seg.start, 0) / 60 / 60;
       topContributers.push({
@@ -62,6 +80,24 @@ module.exports = function (server, mongoose, logger) {
         email: users[i].email,
         segmentCount: users[i].segments.length,
         hoursProcessed,
+      });
+    }
+
+    const topViewedSegments = [];
+    for (let i = 0; i < 10 && i < segments.length; i++) {
+      topViewedSegments.push({
+        title: segments[i].title,
+        segmentId: segments[i].segmentId,
+        views: segments[i].views,
+      });
+    }
+
+    const topSearchTerms = [];
+    for (let i = 0; i < 10 && i < searchQueries.length; i++) {
+      topSearchTerms.push({
+        term: searchQueries[i].term,
+        queryCount: searchQueries[i].queryCount,
+        isTag: !!searchQueries[i].tag,
       });
     }
 
@@ -76,6 +112,10 @@ module.exports = function (server, mongoose, logger) {
       mostUsedTags,
       topContributers,
       totalVideos,
+      totalSegmentViews,
+      topViewedSegments,
+      totalSearches,
+      topSearchTerms,
     };
 
     return stats;
