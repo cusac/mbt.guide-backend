@@ -2,8 +2,8 @@
 
 const Joi = require('@hapi/joi');
 const Boom = require('@hapi/boom');
-const Chalk = require('../../node_modules/chalk');
-const RestHapi = require('../../node_modules/rest-hapi');
+const Chalk = require('chalk');
+const RestHapi = require('rest-hapi');
 const auditLog = require('../policies/audit-log.policy');
 
 const _ = require('lodash');
@@ -27,18 +27,15 @@ module.exports = function (server, mongoose, logger) {
     const updateVideoSegmentsHandler = async function (request, h) {
       try {
         const Segment = mongoose.model('segment');
+        const Tag = mongoose.model('tag');
 
         const { videoId, segments } = request.payload;
 
-        //Log.debug("Segments length:", segments.length);
-        //Log.debug("Segments before:", segments, segments[0].tags);
         for (let i = 0; i < segments.length; i++) {
           for (let j = 0; j < segments[i].tags.length; j++) {
-            //Log.debug("i=",i, "j=", j)
-            segments[i].tags[j].tag.name = standardizeTag(segments[i].tags[j].tag.name);
+            segments[i].tags[j].tag.name = Tag.standardizeTag(segments[i].tags[j].tag.name);
           }
         }
-        //Log.debug("Segments after:", segments, segments[0].tags);
 
         const video = (
           await RestHapi.list({
@@ -211,20 +208,3 @@ module.exports = function (server, mongoose, logger) {
     });
   })();
 };
-
-function standardizeTag(name) {
-  //console.log("Before:",name);
-
-  //Eliminate leading and trailing spaces
-  name = name.trim();
-
-  //Eliminate junk characters at beginning
-  if (name.startsWith('#') || name.startsWith('$') || name.startsWith('.')) name = name.substr(1);
-
-  //Convert everything to lower case
-  name = name.toLowerCase();
-
-  //console.log("After:", name);
-
-  return name;
-}

@@ -295,6 +295,11 @@ const config = {
       production: 'ERROR',
       $default: 'DEBUG',
     },
+    auditLogTTL: {
+      $filter: 'env',
+      production: '30d',
+      $default: '30d',
+    },
   },
 };
 

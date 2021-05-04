@@ -43,6 +43,9 @@ module.exports = function(mongoose) {
       metro_code: {
         type: Types.Number,
       },
+      site: {
+        type: Types.String,
+      },
     },
     { collection: modelName }
   );

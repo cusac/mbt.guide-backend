@@ -16,6 +16,7 @@ module.exports = function (server, mongoose, logger) {
     const Log = logger.bind(Chalk.magenta('Search Segments'));
 
     const Segment = mongoose.model('segment');
+    const Tag = mongoose.model('tag');
     Log.note('Generating Search Segments endpoint');
 
     const searchSegmentsHandler = async function (request, h) {
@@ -96,6 +97,56 @@ module.exports = function (server, mongoose, logger) {
         const segments = segmentIds.map((id) =>
           matchingSegments.docs.find((s) => s._id.toString() === id.toString())
         );
+
+        // Record the search query stats
+
+        const query = (
+          await RestHapi.list({
+            model: 'searchQuery',
+            query: {
+              term: request.query.term,
+              $select: 'queryCount',
+            },
+          })
+        ).docs[0];
+
+        // Update the query count if the query exists
+        if (query) {
+          RestHapi.update({
+            model: 'searchQuery',
+            _id: query._id,
+            payload: { queryCount: query.queryCount + 1 },
+            Log,
+          });
+          // Create a new query record if this term hasn't been searched before
+        } else {
+          // Check if the query term matches a tag
+          const tagName = Tag.standardizeTag(request.query.term);
+          const tag = (
+            await RestHapi.list({
+              model: 'tag',
+              query: {
+                name: tagName,
+              },
+              Log,
+            })
+          ).docs[0];
+
+          const payload = {
+            term: request.query.term,
+            queryCount: 1,
+          };
+
+          if (tag) {
+            payload.tag = tag._id;
+          }
+
+          await RestHapi.create({
+            model: 'searchQuery',
+            payload,
+            Log,
+          });
+        }
 
         return segments;
       } catch (err) {
