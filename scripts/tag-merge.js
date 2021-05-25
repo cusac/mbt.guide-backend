@@ -36,8 +36,7 @@ const _ = require('lodash');
     const server = await Glue.compose(manifest, composeOptions);
     await server.start();
 
-    for (let i = 0; i < 10; i++) {
-      //videos.docs.length
+    for (let i = 0; i < videos.docs.length; i++) {
       let video = videos.docs[i];
       Log.log('video: ', video.title);
       if (video.segments.length < 1) continue;
@@ -85,10 +84,10 @@ const _ = require('lodash');
         credentials: { scope: ['root', USER_ROLES.SUPER_ADMIN] },
         headers: { authorization: 'Bearer' },
       };
-      //let injectOptions = RestHapi.testHelper.mockInjection(request);
-      //Log.log('Calling update-video-segments API');
-      //let result = await server.inject(injectOptions);
-      //Log.log('API call status code:', result.statusCode);
+      let injectOptions = RestHapi.testHelper.mockInjection(request);
+      Log.log('Calling update-video-segments API');
+      let result = await server.inject(injectOptions);
+      Log.log('API call status code:', result.statusCode);
     } //video
 
     Log.log('SCRIPT DONE!');
