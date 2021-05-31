@@ -187,14 +187,12 @@ module.exports = function (mongoose) {
           },
         })
       ).docs;
-      //console.log('possibleOrphanTags:', possibleOrphanTags);
       for (let i = 0; i < possibleOrphanTags.length; i++) {
-        //console.log(possibleOrphanTags[i]._id, possibleOrphanTags[i].segments.length);
         if (possibleOrphanTags[i].segments.length < 1) {
-          //console.log('Deleting orphan tag: ', possibleOrphanTags[i]._id.toString());
           await RestHapi.deleteOne({
             model: 'tag',
             _id: possibleOrphanTags[i]._id.toString(),
+            hardDelete: true,
             restCall: true,
           });
         }

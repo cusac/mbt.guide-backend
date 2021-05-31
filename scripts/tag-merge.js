@@ -20,6 +20,8 @@ const _ = require('lodash');
     RestHapi.config.modelPath = path.join(__dirname, '/../server/models');
     let models = await RestHapi.generateModels(Mongoose);
 
+    const Tag = Mongoose.model('tag');
+
     const USER_ROLES = Config.get('/constants/USER_ROLES');
 
     //DO WORK
@@ -56,9 +58,9 @@ const _ = require('lodash');
         let updatedTags = [];
         for (let k = 0; k < segment.tags.length; k++) {
           let tag = segment.tags[k];
-          if (tag.tag.isDeleted == true) continue;
+          if (!tag.tag || tag.tag.isDeleted == true) continue;
           const oldTagName = tag.tag.name;
-          const newTagName = standardizeTag(oldTagName);
+          const newTagName = Tag.standardizeTag(oldTagName);
           Log.log('Old tagname: ', oldTagName);
           Log.log('New tagname: ', newTagName);
           let updatedTag = {
@@ -97,16 +99,3 @@ const _ = require('lodash');
     process.exit(1);
   }
 })();
-
-function standardizeTag(name) {
-  //Eliminate leading and trailing spaces
-  name = name.trim();
-
-  //Eliminate junk characters at beginning
-  if (name.startsWith('#') || name.startsWith('$') || name.startsWith('.')) name = name.substr(1);
-
-  //Convert everything to lower case
-  name = name.toLowerCase();
-
-  return name;
-}
