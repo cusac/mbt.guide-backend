@@ -99,3 +99,8 @@ const _ = require('lodash');
     process.exit(1);
   }
 })();
+
+// merge stats for 05/31/21:
+// tags before merge: 15712
+// tags after merge: 14447
+// tags merged: 1265
