@@ -193,7 +193,6 @@ module.exports = function (mongoose) {
             model: 'tag',
             _id: possibleOrphanTags[i]._id.toString(),
             hardDelete: true,
-            restCall: true,
           });
         }
       }
