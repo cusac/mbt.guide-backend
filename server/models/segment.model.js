@@ -94,6 +94,10 @@ module.exports = function (mongoose) {
         return a.tag.name === b.tag.name && a.rank === b.rank;
       };
 
+      // Filter out "ghost" tags (not sure how this occurs)
+      oldTags = oldTags.filter((t) => t.tag !== null);
+      currentTags = currentTags.filter((t) => t.tag !== null);
+
       const deletedTags = _.differenceBy(oldTags, currentTags, 'tag.name');
       const newTags = _.differenceWith(currentTags, oldTags, nameAndRank);
 
