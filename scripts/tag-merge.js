@@ -43,9 +43,10 @@ const _ = require('lodash');
       Log.log('video: ', video.title);
       if (video.segments.length < 1) continue;
       let updatedSegments = [];
+      let segmentsUpdated = false;
       for (let j = 0; j < video.segments.length; j++) {
         const segment = videos.docs[i].segments[j];
-        Log.log('segment: ', segment.title);
+        Log.note('segment: ', segment.title);
         let updatedSegment = {
           segmentId: segment.segmentId,
           video: video._id.toString(),
@@ -61,35 +62,43 @@ const _ = require('lodash');
           if (!tag.tag || tag.tag.isDeleted == true) continue;
           const oldTagName = tag.tag.name;
           const newTagName = Tag.standardizeTag(oldTagName);
-          Log.log('Old tagname: ', oldTagName);
-          Log.log('New tagname: ', newTagName);
+          if (oldTagName != newTagName) {
+            segmentsUpdated = true;
+            Log.note('Old tagname: ', oldTagName);
+            Log.note('New tagname: ', newTagName);
+          }
           let updatedTag = {
             rank: tag.rank,
             tag: { name: newTagName },
           };
           updatedTags.push(updatedTag);
         } //tag
+        Log.note('Pushing updated segments for: ', segment.title);
         updatedSegment.tags = updatedTags;
         updatedSegments.push(updatedSegment);
       } //segment
 
-      let updatePayload = {
-        videoId: video.ytId,
-        segments: updatedSegments,
-      };
-      let request = {
-        method: 'POST',
-        url: '/update-video-segments',
-        params: {},
-        query: {},
-        payload: updatePayload,
-        credentials: { scope: ['root', USER_ROLES.SUPER_ADMIN] },
-        headers: { authorization: 'Bearer' },
-      };
-      let injectOptions = RestHapi.testHelper.mockInjection(request);
-      Log.log('Calling update-video-segments API');
-      let result = await server.inject(injectOptions);
-      Log.log('API call status code:', result.statusCode);
+      if (segmentsUpdated) {
+        let updatePayload = {
+          videoId: video.ytId,
+          segments: updatedSegments,
+        };
+        let request = {
+          method: 'POST',
+          url: '/update-video-segments',
+          params: {},
+          query: {},
+          payload: updatePayload,
+          credentials: { scope: ['root', USER_ROLES.SUPER_ADMIN] },
+          headers: { authorization: 'Bearer' },
+        };
+        let injectOptions = RestHapi.testHelper.mockInjection(request);
+        Log.log('Calling update-video-segments API');
+        let result = await server.inject(injectOptions);
+        Log.log('API call status code:', result.statusCode);
+      } else {
+        Log.note('No segments changed, skipping video.');
+      }
     } //video
 
     Log.log('SCRIPT DONE!');
