@@ -109,6 +109,11 @@ const config = {
     production: process.env.AWS_SECRET_ACCESS_KEY,
     $default: process.env.AWS_SECRET_ACCESS_KEY,
   },
+  sentryDSN: {
+    $filter: 'env',
+    production: process.env.SENTRY_DSN,
+    $default: process.env.SENTRY_DSN,
+  },
   nodemailer: {
     $filter: 'env',
     production: {
@@ -170,8 +175,8 @@ const config = {
   },
   mongoSSL: {
     $filter: 'env',
-    production: process.env.MONGO_SSL === "true",
-    $default: process.env.MONGO_SSL === "true",
+    production: process.env.MONGO_SSL === 'true',
+    $default: process.env.MONGO_SSL === 'true',
   },
   // If true, the 'demoAuth' policy is used to restrict certain actions.
   enableDemoAuth: {
@@ -188,7 +193,7 @@ const config = {
         $filter: 'env',
         production: process.env.MONGODB_URI,
         $default: process.env.MONGODB_URI,
-      }
+      },
     },
     cors: {
       additionalHeaders: ['X-Access-Token', 'X-Refresh-Token'],
@@ -305,10 +310,10 @@ const config = {
 
 const store = new Confidence.Store(config);
 
-exports.get = function(key) {
+exports.get = function (key) {
   return store.get(key, criteria);
 };
 
-exports.meta = function(key) {
+exports.meta = function (key) {
   return store.meta(key, criteria);
 };

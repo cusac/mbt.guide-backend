@@ -1,7 +1,11 @@
 'use strict';
 let Boom = require('@hapi/boom');
+const Sentry = require('@sentry/node');
 
 function handleError(err, Log) {
+  //This logs the exception, including any appended fields such as data and sensitiveData
+  Sentry.captureException(err);
+
   if (err.isBoom) {
     Log.error(err);
     if (err.data) {
