@@ -178,6 +178,11 @@ const config = {
     production: process.env.MONGO_SSL === 'true',
     $default: process.env.MONGO_SSL === 'true',
   },
+  mongoCertFile: {
+    $filter: 'env',
+    production: process.env.MONGO_CERT_FILE,
+    $default: process.env.MONGO_CERT_FILE,
+  },
   // If true, the 'demoAuth' policy is used to restrict certain actions.
   enableDemoAuth: {
     $filter: 'env',
