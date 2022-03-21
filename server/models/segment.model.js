@@ -44,6 +44,9 @@ module.exports = function (mongoose) {
         type: Types.Number,
         default: 0,
       },
+      captions: {
+        type: Types.String,
+      },
     },
     { collection: modelName }
   );
