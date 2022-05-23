@@ -18,6 +18,7 @@ function handleError(err, Log) {
     throw err;
   } else {
     Log.error(err);
+    console.trace();
     throw Boom.badImplementation(err);
   }
 }

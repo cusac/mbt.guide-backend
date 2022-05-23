@@ -5,10 +5,15 @@ const Joi = require('@hapi/joi');
 const Boom = require('@hapi/boom');
 const RestHapi = require('rest-hapi');
 const fetch = require('node-fetch');
+const elasticSearch = require('elasticsearch');
 const errorHelper = require('../utilities/error-helper');
 const path = require('path');
+const Config = require('../../config');
 
 const AWS = require('aws-sdk');
+
+const esAws = Config.get('/esAws');
+const esEndpoint = Config.get('/esEndpoint');
 
 module.exports = function (server, mongoose, logger) {
   // Search Segments Endpoint
@@ -21,13 +26,7 @@ module.exports = function (server, mongoose, logger) {
 
     const searchSegmentsHandler = async function (request, h) {
       try {
-        let domain = `search-mbt-dev2-reini6slnwjr3rqvykrqcz4h6q.us-east-2.es.amazonaws.com`;
-
-        // TODO: Grab region from env-vars
-        const region = 'us-east-2';
-        var endpoint = new AWS.Endpoint(domain);
-        var aws_request = new AWS.HttpRequest(endpoint, region);
-
+        let response;
         // TODO: Add pagination options
         const body = {
           size: 50,
@@ -47,47 +46,75 @@ module.exports = function (server, mongoose, logger) {
           },
         };
 
-        aws_request.method = 'POST';
-        aws_request.path = path.join(aws_request.path, 'segment', '_search');
-        aws_request.body = JSON.stringify(body);
-        aws_request.headers['host'] = domain;
-        aws_request.headers['Content-Type'] = 'application/json';
-        // Content-Length is only needed for DELETE requests that include a request
-        // body, but including it for all requests doesn't seem to hurt anything.
-        aws_request.headers['Content-Length'] = Buffer.byteLength(aws_request.body);
+        if (esAws) {
+          // TODO: Grab region from env-vars
+          const region = 'us-east-2';
+          var endpoint = new AWS.Endpoint(esEndpoint);
+          var aws_request = new AWS.HttpRequest(endpoint, region);
 
-        const credentials = new AWS.EnvironmentCredentials('AWS');
-        const signer = new AWS.Signers.V4(aws_request, 'es');
-        signer.addAuthorization(credentials, new Date());
+          aws_request.method = 'POST';
+          aws_request.path = path.join(aws_request.path, 'segment', '_search');
+          aws_request.body = JSON.stringify(body);
+          aws_request.headers['host'] = domain;
+          aws_request.headers['Content-Type'] = 'application/json';
+          // Content-Length is only needed for DELETE requests that include a request
+          // body, but including it for all requests doesn't seem to hurt anything.
+          aws_request.headers['Content-Length'] = Buffer.byteLength(aws_request.body);
 
-        const client = new AWS.HttpClient();
-        const response = await new Promise((resolve, reject) => {
-          client.handleRequest(
-            aws_request,
-            null,
-            (response) => {
-              const { statusCode, statusMessage, headers } = response;
-              let body = '';
-              response.on('data', (chunk) => {
-                body += chunk;
-              });
-              response.on('end', () => {
-                const data = {
-                  statusCode,
-                  statusMessage,
-                  headers,
-                };
-                if (body) {
-                  data.body = JSON.parse(body);
+          const credentials = new AWS.EnvironmentCredentials('AWS');
+          const signer = new AWS.Signers.V4(aws_request, 'es');
+          signer.addAuthorization(credentials, new Date());
+
+          const client = new AWS.HttpClient();
+          response = await new Promise((resolve, reject) => {
+            client.handleRequest(
+              aws_request,
+              null,
+              (response) => {
+                const { statusCode, statusMessage, headers } = response;
+                let body = '';
+                response.on('data', (chunk) => {
+                  body += chunk;
+                });
+                response.on('end', () => {
+                  const data = {
+                    statusCode,
+                    statusMessage,
+                    headers,
+                  };
+                  if (body) {
+                    data.body = JSON.parse(body);
+                  }
+                  resolve(data);
+                });
+              },
+              (err) => {
+                reject(err);
+              }
+            );
+          });
+        } else {
+          const elasticSearchClient = new elasticSearch.Client({
+            host: esEndpoint,
+          });
+
+          response = await new Promise((resolve, reject) => {
+            elasticSearchClient.search(
+              {
+                index: 'segment',
+                type: '_doc',
+                body,
+              },
+              function (error, res, status) {
+                if (error) {
+                  reject(error);
+                } else {
+                  resolve({ body: res });
                 }
-                resolve(data);
-              });
-            },
-            (err) => {
-              reject(err);
-            }
-          );
-        });
+              }
+            );
+          });
+        }
 
         const segmentIds = response.body.hits.hits.map((hit) => hit._id);
 

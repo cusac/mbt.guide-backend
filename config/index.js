@@ -189,6 +189,16 @@ const config = {
     production: false,
     $default: false,
   },
+  esAws: {
+    $filter: 'env',
+    production: process.env.ES_AWS === 'true',
+    $default: process.env.ES_AWS === 'true',
+  },
+  esEndpoint: {
+    $filter: 'env',
+    production: process.env.ES_ENDPOINT,
+    $default: process.env.ES_ENDPOINT,
+  },
   // This is the config object passed into the rest-hapi plugin during registration:
   // https://github.com/JKHeadley/rest-hapi#configuration
   restHapiConfig: {
