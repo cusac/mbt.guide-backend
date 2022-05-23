@@ -393,4 +393,17 @@ private_keys
 node_modules
 
 *.gz
-.pem
+*.pem
+franktemp
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+
+.env copy*
+.env-docker
+
+scratchpad.txt
+test.js
+test*.json
