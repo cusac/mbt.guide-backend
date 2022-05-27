@@ -11,4 +11,4 @@ docker-compose -f docker-compose.util.yml up -d mongo
 docker-compose -f docker-compose.util.yml exec -T mongo mongorestore --archive --gzip < mbt_db_dump.gz
 
 # Stop the services
-docker-compose -f docker-compose.e2e.test.yml down
+docker-compose -f docker-compose.util.test.yml down

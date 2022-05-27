@@ -12,7 +12,7 @@ networks:
 services:
   mongo:
     image: mongo:3.6.4
-    container_name: mongo
+    container_name: mbt-mongo
     ports:
       - 27017:27017
     volumes:
@@ -23,7 +23,7 @@ services:
 
   elastic:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.4.0
-    container_name: elasticsearch
+    container_name: mbt-elasticsearch
     restart: always
     environment:
       - xpack.security.enabled=false
@@ -45,7 +45,7 @@ services:
       - backend
 
   kibana:
-    container_name: kibana
+    container_name: mbt-kibana
     image: docker.elastic.co/kibana/kibana:7.4.0
     restart: always
     environment:
@@ -59,7 +59,7 @@ services:
                                       # kibana will start when elasticsearch has started
   api:
     build: ./
-    container_name: api
+    container_name: mbt-api
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     volumes:
@@ -78,7 +78,7 @@ services:
 
   task:
     build: ./
-    container_name: task
+    container_name: mbt-task
     volumes:
       # Share the entire project except "node_modules". This prevents us from having to COPY the project files
       #   in the Dockerfile, while still keeping separate node dependency files.

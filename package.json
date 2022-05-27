@@ -40,7 +40,7 @@
     "@sentry/node": "^6.11.0",
     "aws-sdk": "^2.906.0",
     "bcryptjs": "^2.4.0",
-    "chalk": "*",
+    "chalk": "^4.0.0",
     "confidence": "^3.0.2",
     "core-js": "^3.6.5",
     "dotenv": "^2.0.0",
