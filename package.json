@@ -78,6 +78,6 @@
     "lint-staged": "^7.1.0",
     "nodemon": "^2.0.3",
     "prettier": "^2.0.2",
-    "rewire": "^4.0.1"
+    "rewire": "^6.0.0"
   }
 }
