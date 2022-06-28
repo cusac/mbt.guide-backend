@@ -32,8 +32,8 @@
     ]
   },
   "engines": {
-    "node": ">=12.14.1",
-    "npm": ">=3.8.1"
+    "node": ">=16.13.2",
+    "npm": ">=8.1.2"
   },
   "dependencies": {
     "@firebase/app": "^0.7.24",
@@ -43,8 +43,8 @@
     "@sentry/node": "^6.11.0",
     "aws-sdk": "^2.906.0",
     "bcryptjs": "^2.4.0",
-    "confidence": "^5.0.1",
     "chalk": "^4.0.0",
+    "confidence": "^5.0.1",
     "core-js": "^3.6.5",
     "dotenv": "^2.0.0",
     "elasticsearch": "^16.7.3",
@@ -83,9 +83,9 @@
     "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-prettier": "^3.1.2",
     "eslint-plugin-promise": "^4.2.1",
-    "husky": "^0.14.3",
+    "husky": "^8.0.1",
     "jest": "^28.1.0",
-    "lint-staged": "^12.4.1",
+    "lint-staged": "^13.0.3",
     "nodemon": "^2.0.3",
     "prettier": "^2.0.2",
     "rewire": "^6.0.0"
