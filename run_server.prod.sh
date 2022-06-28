@@ -6,6 +6,7 @@ docker build -t mbt_guide/backend -f ./Dockerfile.prod .
 
 docker run --rm \
 -p 8080:8080 \
+-p 27017 \
 --env-file .env \
 --name mbt_guide_backend \
 -i mbt_guide/backend
