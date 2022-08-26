@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 const Chalk = require('chalk');
 const RestHapi = require('rest-hapi');
 const stringSimilarity = require('string-similarity');
