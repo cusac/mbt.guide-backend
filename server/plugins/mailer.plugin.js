@@ -5,7 +5,6 @@ const Fs = require('fs');
 const Q = require('q');
 const Handlebars = require('handlebars');
 const Hoek = require('@hapi/hoek');
-const Markdown = require('nodemailer-markdown').markdown;
 const Nodemailer = require('nodemailer');
 
 const Config = require('../../config');
@@ -20,7 +19,6 @@ module.exports = {
 };
 
 internals.transport = Nodemailer.createTransport(Config.get('/nodemailer'));
-internals.transport.use('compile', Markdown({ useEmbeddedImages: true }));
 
 internals.templateCache = {};
 
