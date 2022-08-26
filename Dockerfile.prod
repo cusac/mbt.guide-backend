@@ -1,4 +1,4 @@
-FROM node:erbium
+FROM node:gallium
 
 # Create and set the working directory
 RUN mkdir /backend
