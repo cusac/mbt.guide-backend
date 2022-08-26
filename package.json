@@ -67,7 +67,7 @@
     "q": "^1.4.1",
     "request-promise": "^4.2.2",
     "require-dir": "^0.3.2",
-    "rest-hapi": "^2.3.1",
+    "rest-hapi": "^3.0.0",
     "string-similarity": "^4.0.4",
     "useragent": "^2.3.0",
     "youtube-captions-scraper": "^2.0.0",
