@@ -8,7 +8,7 @@ const Glue = require('@hapi/glue');
 const Manifest = require('../config/manifest.conf');
 const Config = require('../config');
 const restHapiConfig = Config.get('/restHapiConfig');
-const getSubtitles = require('youtube-captions-scraper').getSubtitles;
+const getSubtitles = require('../utilities/get-subtitles.utility');
 
 require('dotenv').config();
 

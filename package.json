@@ -68,8 +68,8 @@
     "require-dir": "^0.3.2",
     "rest-hapi": "^3.0.0",
     "string-similarity": "^4.0.4",
+    "striptags": "^3.2.0",
     "useragent": "^2.3.0",
-    "youtube-captions-scraper": "^2.0.0",
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
@@ -82,6 +82,7 @@
     "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-prettier": "^3.1.2",
     "eslint-plugin-promise": "^4.2.1",
+    "he": "^1.2.0",
     "husky": "^8.0.1",
     "jest": "^28.1.0",
     "lint-staged": "^13.0.3",
