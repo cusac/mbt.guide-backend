@@ -320,6 +320,11 @@ const config = {
       production: '30d',
       $default: '30d',
     },
+    logListResult: {
+      $filter: 'env',
+      production: false,
+      $default: false,
+    },
   },
 };
 

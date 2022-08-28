@@ -50,7 +50,7 @@ module.exports = function (server, mongoose, logger) {
         tags: ['api', 'Segments'],
         validate: {
           params: {
-            _id: Joi.objectId().required(),
+            _id: RestHapi.joiHelper.joiObjectId().required(),
           },
         },
         plugins: {
