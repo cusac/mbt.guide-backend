@@ -204,6 +204,28 @@ module.exports = function (mongoose) {
         }
       }
     },
+
+    addCaptions: async function ({ seg, captions, logger }) {
+      let segCaptions = '';
+      let foundSegment = false;
+
+      for (const cap of captions) {
+        if (cap.start > seg.start && cap.start < seg.end) {
+          if (!foundSegment) {
+            foundSegment = true;
+            if (captions.indexOf(cap) !== 0) {
+              segCaptions = captions[captions.indexOf(cap) - 1].text;
+            }
+          }
+          segCaptions = `${segCaptions} ${cap.text}`;
+        }
+        if (cap.start > seg.end) {
+          break;
+        }
+      }
+
+      await RestHapi.update('segment', seg._id, { captions: segCaptions }, logger);
+    }
   };
 
   // Need index for stats
