@@ -2,7 +2,7 @@ version: "3.4"
 
 volumes:
   mongo_data:
-    name: mbt_mongo_data
+    name: mbt_mongo_data_5_0_14
   elasticsearch-data:
     name: mbt_es_data
 
@@ -11,7 +11,7 @@ networks:
 
 services:
   mongo:
-    image: mongo:3.6.4
+    image: mongo:5.0.14
     container_name: mbt-mongo
     ports:
       - 27017:27017

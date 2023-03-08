@@ -408,3 +408,4 @@ scratchpad.txt
 test.js
 test*.json
 .env-docker copy
+mbt_db_dump_nozip/*

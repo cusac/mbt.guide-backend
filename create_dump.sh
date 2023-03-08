@@ -14,12 +14,11 @@ docker-compose up -d mongo
 # Run mongodump in the container and pipe the result to the current local directory
 
 # Uncomment the line below to connect to the prod db using a certificate
-# docker-compose exec -T mongo mongorestore --archive --gzip --uri ${MONGODB_URI} --sslCAFile ${MONGO_CERT_FILE} < mbt_db_dump.gz
-docker-compose exec -T mongo mongorestore --archive --gzip -u ${MONGODB_USER} -p ${MONGODB_PASSWORD} --host ${MONGODB_HOST} --authenticationDatabase=admin --ssl --sslCAFile ${MONGO_CERT_FILE} < mbt_db_dump.gz
+docker-compose exec -T mongo mongodump --archive --gzip --uri ${MONGODB_URI} --sslCAFile ${MONGO_CERT_FILE} > mbt_db_dump.gz
 
 
-# Restore the mbt utils database from the local dump file
-# docker-compose exec -T mongo mongorestore --archive --gzip < mbt_db_dump.gz
+# Uncomment the line below to connect to a normal db
+# docker-compose exec -T mongo mongodump --archive="mbt_db_dump.db" > mbt_db_dump.db
 
 
 # Stop the services

@@ -158,31 +158,86 @@ module.exports = function (mongoose) {
           query: {
             name: oldTags.map((t) => t.tag.name),
             isDeleted: false,
-            $embed: ['segments'],
           },
         })
       ).docs;
+      const oldTagsPromises = [];
+      for (let i = 0; i < oldTagsToCountSegmentsFor.length; i++) {
+        oldTagsPromises.push(
+          Promise.all([
+            oldTagsToCountSegmentsFor[i]._id,
+            RestHapi.getAll({
+              ownerModel: 'tag',
+              ownerId: oldTagsToCountSegmentsFor[i]._id.toString(),
+              childModel: 'segment',
+              associationName: 'segments',
+              query: {
+                $count: true,
+                isDeleted: false,
+              },
+            }),
+          ]).then((res) => {
+            const tagId = res[0];
+            const segmentCount = res[1];
+            const tagForSegments = oldTagsToCountSegmentsFor.find(
+              (t) => t._id.toString() === tagId.toString()
+            );
+            tagForSegments.newSegmentCount =
+              segmentCount === tagForSegments.segmentCount ? null : segmentCount;
+          })
+        );
+      }
+
       const currentTagsToCountSegmentsFor = (
         await RestHapi.list({
           model: 'tag',
           query: {
             name: currentTags.map((t) => t.tag.name),
             isDeleted: false,
-            $embed: ['segments'],
           },
         })
       ).docs;
+      const currentTagsPromises = [];
+      for (let i = 0; i < currentTagsToCountSegmentsFor.length; i++) {
+        currentTagsPromises.push(
+          Promise.all([
+            currentTagsToCountSegmentsFor[i]._id,
+            RestHapi.getAll({
+              ownerModel: 'tag',
+              ownerId: currentTagsToCountSegmentsFor[i]._id.toString(),
+              childModel: 'segment',
+              associationName: 'segments',
+              query: {
+                $count: true,
+                isDeleted: false,
+              },
+            }),
+          ]).then((res) => {
+            const tagId = res[0];
+            const segmentCount = res[1];
+            const tagForSegments = currentTagsToCountSegmentsFor.find(
+              (t) => t._id.toString() === tagId.toString()
+            );
+            tagForSegments.newSegmentCount =
+              segmentCount === tagForSegments.segmentCount ? null : segmentCount;
+          })
+        );
+      }
+
+      await Promise.all(oldTagsPromises);
+      await Promise.all(currentTagsPromises);
+
       const allTagsToCountSegmentsFor = oldTagsToCountSegmentsFor.concat(
         currentTagsToCountSegmentsFor
       );
       for (let i = 0; i < allTagsToCountSegmentsFor.length; i++) {
+        if (!allTagsToCountSegmentsFor[i].newSegmentCount) continue;
         let tag = await RestHapi.update({
           model: 'tag',
           _id: allTagsToCountSegmentsFor[i]._id.toString(),
-          payload: { segmentCount: allTagsToCountSegmentsFor[i].segments.length },
+          payload: { segmentCount: allTagsToCountSegmentsFor[i].newSegmentCount },
         });
       }
-
       //Delete orphan tags
       const possibleOrphanTags = (
         await RestHapi.list({
@@ -225,7 +280,7 @@ module.exports = function (mongoose) {
       }
 
       await RestHapi.update('segment', seg._id, { captions: segCaptions }, logger);
-    }
+    },
   };
 
   // Need index for stats
