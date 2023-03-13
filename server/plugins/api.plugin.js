@@ -33,6 +33,7 @@ async function register(server, options) {
     if (mongoSSL) {
       const certFilePath = await getMongoCA();
       config.mongo.options = { ssl: true, sslValidate: true, sslCA: certFilePath };
+      console.log("MONGO CONFIG:", config.mongo)
     }
     await server.register({
       plugin: RestHapi,
@@ -65,6 +66,7 @@ async function getMongoCA() {
             console.error('Error loading mongo cert:', error);
             rej(error);
           } else {
+            console.log("CERT DOWNLOADED FROM S3", certFilePath);
             fs.writeFileSync(certFilePath, certFileBuf.Body);
             res(certFilePath);
           }
