@@ -32,6 +32,7 @@ async function register(server, options) {
     console.log('mongoSSL:', mongoSSL);
     if (mongoSSL) {
       const certFilePath = await getMongoCA();
+      await getMongoCA(); // TODO: remove this line
       config.mongo.options = { ssl: true, sslValidate: true, sslCA: certFilePath };
       console.log("MONGO CONFIG:", config.mongo)
     }
