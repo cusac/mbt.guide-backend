@@ -29,10 +29,10 @@ async function register(server, options) {
   try {
     const config = Config.get('/restHapiConfig');
     const mongoSSL = Config.get('/mongoSSL');
-    console.log("mongoSSL:", mongoSSL)
+    console.log('mongoSSL:', mongoSSL);
     if (mongoSSL) {
-      const certFileBuf = await getMongoCA();
-      config.mongo.options = { sslCA: certFileBuf };
+      const certFilePath = await getMongoCA();
+      config.mongo.options = { ssl: true, sslValidate: true, sslCA: certFilePath };
     }
     await server.register({
       plugin: RestHapi,
@@ -51,24 +51,25 @@ async function getMongoCA() {
   const certFilePath = path.join(__dirname, `/../../utilities/${mongoCertFile}`);
 
   try {
-    const certFileBuf = fs.readFileSync(certFilePath);
-    console.log("FILE FOUND")
-    return Promise.resolve(certFileBuf);
+    fs.readFileSync(certFilePath);
+    console.log('FILE FOUND');
+    return Promise.resolve(certFilePath);
   } catch {
-    console.log("FILE NOT FOUND, USING S3")
+    console.log('FILE NOT FOUND, USING S3');
     return new Promise((res, rej) => {
       const s3 = new AWS.S3();
-      s3.getObject({ Bucket: 'mbt-guide-private-keys', Key: mongoCertFile }, function(
-        error,
-        certFileBuf
-      ) {
-        if (error != null) {
-          console.error('Error loading mongo cert:', error);
-          rej(error)
-        } else {
-          res(certFileBuf.Body)
+      s3.getObject(
+        { Bucket: 'mbt-guide-private-keys', Key: mongoCertFile },
+        function (error, certFileBuf) {
+          if (error != null) {
+            console.error('Error loading mongo cert:', error);
+            rej(error);
+          } else {
+            fs.writeFileSync(certFilePath, certFileBuf.Body);
+            res(certFilePath);
+          }
         }
-      });
-    })
+      );
+    });
   }
 }

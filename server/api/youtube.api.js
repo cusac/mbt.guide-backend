@@ -1,7 +1,7 @@
 'use strict';
 
 const Chalk = require('chalk');
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 const Boom = require('@hapi/boom');
 const fetch = require('node-fetch');
 const errorHelper = require('../utilities/error-helper');

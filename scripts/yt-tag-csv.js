@@ -1,5 +1,3 @@
-
-
 'use strict';
 
 process.env.NODE_ENV = 'local';
@@ -50,9 +48,8 @@ require('dotenv').config();
         header: true,
       },
       function (err, output) {
-        console.log("ERR:", err)
+        console.log('ERR:', err);
         fs.writeFileSync(__dirname + '/mbt-yt-tags.csv', output);
-
 
         Log.log('SCRIPT DONE!');
         process.exit(0);

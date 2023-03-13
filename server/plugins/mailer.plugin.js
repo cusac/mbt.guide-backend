@@ -4,8 +4,7 @@ const path = require('path');
 const Fs = require('fs');
 const Q = require('q');
 const Handlebars = require('handlebars');
-const Hoek = require('hoek');
-const Markdown = require('nodemailer-markdown').markdown;
+const Hoek = require('@hapi/hoek');
 const Nodemailer = require('nodemailer');
 
 const Config = require('../../config');
@@ -20,11 +19,10 @@ module.exports = {
 };
 
 internals.transport = Nodemailer.createTransport(Config.get('/nodemailer'));
-internals.transport.use('compile', Markdown({ useEmbeddedImages: true }));
 
 internals.templateCache = {};
 
-internals.renderTemplate = function(signature, context, Log) {
+internals.renderTemplate = function (signature, context, Log) {
   const deferred = Q.defer();
 
   if (internals.templateCache[signature]) {
@@ -47,10 +45,10 @@ internals.renderTemplate = function(signature, context, Log) {
   return deferred.promise;
 };
 
-internals.sendEmail = function(options, template, context, Log) {
+internals.sendEmail = function (options, template, context, Log) {
   return internals
     .renderTemplate(template, context, Log)
-    .then(function(content) {
+    .then(function (content) {
       const defaultEmail = Config.get('/defaultEmail');
 
       // send to the default email address if it exists
@@ -65,7 +63,7 @@ internals.sendEmail = function(options, template, context, Log) {
 
       return internals.transport.sendMail(options);
     })
-    .catch(function(error) {
+    .catch(function (error) {
       throw error;
     });
 };

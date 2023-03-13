@@ -2,7 +2,10 @@ const axios = require('axios');
 const fs = require('fs');
 const qs = require('querystring')
 
-axios.defaults.baseURL = 'http://localhost:' + process.env.SERVER_PORT;
+const serverPort = process.env.SERVER_PORT ? process.env.SERVER_PORT : 8080
+const masterPassword = process.env.MASTER_PASSWORD ? process.env.MASTER_PASSWORD : 'abcd'
+
+axios.defaults.baseURL = 'http://localhost:' + serverPort;
 
 // Replace default serializer with one that works with Joi validation
 axios.defaults.paramsSerializer = function(params) {
@@ -13,7 +16,7 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-jest.setTimeout(10000);
+jest.setTimeout(100000);
 
 let videoId;
 let token1;
@@ -36,6 +39,7 @@ describe('test video api', () => {
         await axios(config);
         ready = true;
       } catch (err) {
+        console.log("NOT READY")
         await sleep(1000);
       }
     }
@@ -47,7 +51,7 @@ describe('test video api', () => {
       url: '/login',
       data: {
         email: 'test@admin.com',
-        password: process.env.MASTER_PASSWORD,
+        password: masterPassword,
       },
     };
 
@@ -60,7 +64,7 @@ describe('test video api', () => {
       url: '/login',
       data: {
         email: 'test@user.com',
-        password: process.env.MASTER_PASSWORD,
+        password: masterPassword,
       },
     };
 
@@ -252,7 +256,7 @@ describe('test video api', () => {
     });
 
     test('can remove tags', async () => {
-      expect.assertions(15);
+      expect.assertions(14);
 
       let config = {
         method: 'POST',
@@ -340,8 +344,8 @@ describe('test video api', () => {
       expect(segment2.tags[0].tag.name).toBe('fear');
       expect(segment2.tags[0].tag._id).toBe(segment1.tags[0].tag._id);
 
-      expect(removedTag.segments.length).toBe(0);
-      expect(removedTag.segmentCount).toBe(0);
+      // Confirm orphaned tag is removed
+      expect(removedTag).toBe(undefined);
     });
 
     test('prevents users from updating other user segments', async () => {

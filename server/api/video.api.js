@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 const Boom = require('@hapi/boom');
 const Chalk = require('chalk');
 const RestHapi = require('rest-hapi');
@@ -12,6 +12,8 @@ const errorHelper = require('../utilities/error-helper');
 
 const Config = require('../../config');
 const authStrategy = Config.get('/restHapiConfig/authStrategy');
+
+const getSubtitles = require('../../utilities/get-subtitles.utility');
 
 const headersValidation = Joi.object({
   authorization: Joi.string().required(),
@@ -142,6 +144,29 @@ module.exports = function (server, mongoose, logger) {
         }
 
         await Promise.all(promises);
+
+        // Add captions if available
+        let captions;
+        try {
+          captions = await getSubtitles({
+            videoID: video.ytId, // youtube video id
+            lang: 'en', // default: `en`
+          });
+        } catch (err) {
+          logger.log("Error getting captions.")
+          logger.log(err);
+        }
+
+        if (captions) {
+          for (const segment of savedSegments) {
+            // TODO: skip adding captions if segment start and end haven't changed
+            await Segment.addCaptions({
+              seg: segment,
+              captions,
+              logger: Log,
+            });
+          }
+        }
 
         return (
           await RestHapi.list({

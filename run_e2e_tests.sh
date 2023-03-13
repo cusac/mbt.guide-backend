@@ -18,7 +18,7 @@ docker-compose -f ./test/e2e/docker-compose.e2e.test.yml exec -T mongo mongo mbt
 docker-compose -f ./test/e2e/docker-compose.e2e.test.yml exec -T mongo mongorestore --archive --gzip < ./test/e2e/mbt_db_tests.gz
 
 # Run the tests
-jest ./test/e2e/end-to-end.test.js
+npx jest ./test/e2e/end-to-end.test.js
 
 # Bring down the containers
 docker-compose -f ./test/e2e/docker-compose.e2e.test.yml down

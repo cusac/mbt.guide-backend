@@ -13,7 +13,7 @@ docker-compose -f docker-compose.util.yml up -d mongo
 # docker-compose -f docker-compose.util.yml exec -T mongo mongodump --archive --gzip --uri ${MONGODB_URI} --sslCAFile "usr/src/mbt-mongo.pem" > mbt_db_dump.gz
 
 # Uncomment the line below to connect to a normal db
-docker-compose -f docker-compose.util.yml exec -T mongo mongodump --archive --gzip --db mbt > mbt_db_dump.gz
+docker-compose -f docker-compose.util.yml exec -T mongo mongodump --archive --db mbt > mbt_db_dump_nozip
 
 
 # Stop the services

@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 const Boom = require('@hapi/boom');
 const Chalk = require('chalk');
 const RestHapi = require('rest-hapi');
@@ -50,7 +50,7 @@ module.exports = function (server, mongoose, logger) {
         tags: ['api', 'Segments'],
         validate: {
           params: {
-            _id: Joi.objectId().required(),
+            _id: RestHapi.joiHelper.joiObjectId().required(),
           },
         },
         plugins: {
