@@ -153,7 +153,7 @@ module.exports = function (server, mongoose, logger) {
             lang: 'en', // default: `en`
           });
         } catch (err) {
-          logger.log("Error getting captions.")
+          logger.log('Error getting captions.');
           logger.log(err);
         }
 
@@ -228,6 +228,270 @@ module.exports = function (server, mongoose, logger) {
             ],
           },
           policies: [auditLog(mongoose, {}, Log)],
+        },
+      },
+    });
+  })();
+
+  // Find Video Segments by Timestamp Range Endpoint
+  (function () {
+    const Log = logger.bind(Chalk.magenta('Find Video Segments'));
+
+    Log.note('Generating Find Video Segments by Timestamp Range Endpoint');
+
+    const findVideoSegmentsByTimestampRangeHandler = async function (request, h) {
+      try {
+        const Segment = mongoose.model('segment');
+
+        const { videoId, start, end } = request.query;
+
+        const video = (
+          await RestHapi.list({
+            model: 'video',
+            query: { ytId: videoId, $embed: ['segments'] },
+          })
+        ).docs[0];
+
+        if (!video) {
+          throw Boom.badRequest('Video not found.');
+        }
+        if (!start && !end) {
+          throw Boom.badRequest('One of start or end timestamps required.');
+        }
+
+        let segmentsInRange;
+
+        if (!start && end) {
+          // Find segments that overlap with the end timestamp
+          segmentsInRange = video.segments.filter(
+            (segment) => segment.start <= end && segment.end >= end
+          );
+        } else if (!end && start) {
+          // Find segments that overlap with the start timestamp
+          segmentsInRange = video.segments.filter(
+            (segment) => segment.start <= start && segment.end >= start
+          );
+        } else {
+          segmentsInRange = video.segments.filter(
+            (segment) => segment.start <= end && segment.end >= start
+          );
+        }
+
+        const segmentsInfoInRange = segmentsInRange.map((segment) => ({
+          videoId: video.ytId,
+          segmentId: segment.segmentId,
+          title: segment.title,
+          description: segment.description,
+          start: segment.start,
+          end: segment.end,
+        }));
+
+        return segmentsInfoInRange;
+      } catch (err) {
+        errorHelper.handleError(err, Log);
+      }
+    };
+
+    server.route({
+      method: 'GET',
+      path: '/video/segments/timestamp-range',
+      config: {
+        handler: findVideoSegmentsByTimestampRangeHandler,
+        auth: null,
+        description: `Find video segments by a timestamp range. This endpoint returns a list of
+        segmentIds, titles, and descriptions for the video that overlap (or intersect) the start to end time range.`,
+        tags: ['api', 'Video', 'Segments'],
+        validate: {
+          query: {
+            videoId: Joi.string().required(),
+            start: Joi.number(),
+            end: Joi.number(),
+          },
+        },
+        plugins: {
+          'hapi-swagger': {
+            responseMessages: [
+              { code: 200, message: 'Success' },
+              { code: 400, message: 'Bad Request' },
+              { code: 404, message: 'Not Found' },
+              { code: 500, message: 'Internal Server Error' },
+            ],
+          },
+          policies: [],
+        },
+      },
+    });
+  })();
+
+  // Update Whisper Doc For Video Endpoint
+  (function () {
+    const Log = logger.bind(Chalk.magenta('Update Whisper Doc'));
+
+    Log.note('Generating Update Whisper Doc Endpoint');
+
+    const updateWhisperDocHandler = async function (request, h) {
+      try {
+        const { videoId, whisperDoc } = request.payload;
+
+        const video = (
+          await RestHapi.list({
+            model: 'video',
+            query: { ytId: videoId, $select: ['title'] },
+          })
+        ).docs[0];
+
+        if (!video) {
+          throw Boom.badRequest('Video not found.');
+        }
+
+        await RestHapi.update({
+          model: 'video',
+          _id: video._id,
+          payload: {
+            whisperDoc,
+          },
+          Log,
+        });
+
+        return true;
+      } catch (err) {
+        errorHelper.handleError(err, Log);
+      }
+    };
+
+    server.route({
+      method: 'PUT',
+      path: '/update-video-whisper',
+      config: {
+        handler: updateWhisperDocHandler,
+        auth: {
+          strategy: authStrategy,
+          scope: ['Super Admin'],
+        },
+        // auth: null,
+        description: `Update the whisper doc name for a video.`,
+        tags: ['api', 'Video', 'Whisper'],
+        validate: {
+          headers: headersValidation,
+          payload: {
+            videoId: Joi.string().required(),
+            whisperDoc: Joi.string().required(),
+          },
+        },
+        plugins: {
+          'hapi-swagger': {
+            responseMessages: [
+              { code: 200, message: 'Success' },
+              { code: 400, message: 'Bad Request' },
+              { code: 404, message: 'Not Found' },
+              { code: 500, message: 'Internal Server Error' },
+            ],
+          },
+          policies: [],
+        },
+      },
+    });
+  })();
+
+  // Find Video Id by Whipser Doc Endpoint
+  (function () {
+    const Log = logger.bind(Chalk.magenta('Find Video Id by Whipser Doc'));
+
+    Log.note('Find Video Id by Whipser Doc Endpoint');
+
+    const findVideoIdHandler = async function (request, h) {
+      try {
+        const { whisperDoc } = request.query;
+
+        const video = (
+          await RestHapi.list({
+            model: 'video',
+            query: { whisperDoc, $select: ['title', 'ytId'] },
+          })
+        ).docs[0];
+
+        if (!video) {
+          throw Boom.badRequest('Video not found.');
+        }
+
+        return { videoId: video.ytId };
+      } catch (err) {
+        errorHelper.handleError(err, Log);
+      }
+    };
+
+    server.route({
+      method: 'GET',
+      path: '/find-videoid-by-whisper',
+      config: {
+        handler: findVideoIdHandler,
+        auth: null,
+        description: `Find a videoId given a whisper doc name.`,
+        tags: ['api', 'Video', 'Whisper'],
+        validate: {
+          query: {
+            whisperDoc: Joi.string().required(),
+          },
+        },
+        plugins: {
+          'hapi-swagger': {
+            responseMessages: [
+              { code: 200, message: 'Success' },
+              { code: 400, message: 'Bad Request' },
+              { code: 404, message: 'Not Found' },
+              { code: 500, message: 'Internal Server Error' },
+            ],
+          },
+          policies: [],
+        },
+      },
+    });
+  })();
+
+  // List Videos Missing Whipser Doc Endpoint
+  (function () {
+    const Log = logger.bind(Chalk.magenta('List Videos Missing Whipser Doc'));
+
+    Log.note('List Videos Missing Whipser Doc Endpoint');
+
+    const listVideosMissingWhisperDocHandler = async function (request, h) {
+      try {
+        // Use mongoose to find all videos that don't have a 'whisperDoc' field. Only select the 'ytId' and 'title' fields.
+        const videos = await mongoose
+          .model('video')
+          .find({ whisperDoc: { $exists: false } }, { ytId: 1, title: 1, whisperDoc: 1, _id: 0 })
+          .lean()
+          .exec();
+
+        if (!videos) {
+          throw Boom.badRequest('No videos found.');
+        }
+
+        return videos;
+      } catch (err) {
+        errorHelper.handleError(err, Log);
+      }
+    };
+
+    server.route({
+      method: 'GET',
+      path: '/list-videos-missing-whisper',
+      config: {
+        handler: listVideosMissingWhisperDocHandler,
+        auth: null,
+        description: `List all videos that don't have a whipser doc name.`,
+        tags: ['api', 'Video', 'Whisper'],
+        validate: {},
+        plugins: {
+          'hapi-swagger': {
+            responseMessages: [
+              { code: 200, message: 'Success' },
+              { code: 400, message: 'Bad Request' },
+              { code: 404, message: 'Not Found' },
+              { code: 500, message: 'Internal Server Error' },
+            ],
+          },
+          policies: [],
         },
       },
     });

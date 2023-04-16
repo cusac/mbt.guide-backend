@@ -26,6 +26,11 @@ module.exports = function(mongoose) {
         required: true,
         description: 'Cached information about the video from YouTube',
       },
+      whisperDoc:  {
+        type: Types.String,
+        unique: true,
+        description: 'Name of file containing the Whisper transcript',
+      },
     },
     { collection: modelName }
   );
