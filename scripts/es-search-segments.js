@@ -4,8 +4,8 @@ const elasticSearchClient = new elasticSearch.Client({
   host: process.env.ES_ENDPOINT,
 });
 
-// any query
-const query = 'test';
+// Search for specific segment title
+const query = 'Sugars effects on consciousness';
 
 async function test() {
   const res = await elasticSearchClient.ping();
@@ -16,10 +16,27 @@ async function search() {
   const body = {
     size: 50,
     query: {
-      multi_match: {
-        query,
-        type: 'cross_fields',
-        fields: ['title^5', 'captions^6', 'high_tags^4', 'description^3', 'mid_tags^2', 'low_tags'],
+      function_score: {
+        query: {
+          multi_match: {
+            query,
+            type: 'cross_fields',
+            fields: ['title^6', 'high_tags^5', 'description^4', 'captions^3', 'mid_tags^2', 'low_tags^1'],
+          },
+        },
+        functions: [
+          {
+            gauss: {
+              createdAt: {
+                origin: 'now',
+                scale: '365d',  // 1 year
+                decay: 0.7,     // Score decays to 0.7 after 1 year
+              },
+            },
+          },
+        ],
+        score_mode: 'sum',
+        boost_mode: 'multiply',
       },
     },
   };
@@ -45,4 +62,4 @@ async function search() {
   );
 }
 
-test();
+search();

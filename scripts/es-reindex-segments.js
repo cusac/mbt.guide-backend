@@ -7,6 +7,10 @@ require('dotenv').config();
 
 axios.defaults.baseURL = `http://${process.env.SERVER_HOST}:${process.env.SERVER_PORT}`;
 
+console.log('SERVER_HOST', process.env.SERVER_HOST);
+console.log('SERVER_PORT', process.env.SERVER_PORT);
+console.log('ES_ENDPOINT', process.env.ES_ENDPOINT);
+
 // Replace default serializer with one that works with Joi validation
 axios.defaults.paramsSerializer = function (params) {
   return qs.stringify(params);
@@ -81,6 +85,8 @@ async function getSegments(limit = 50, page = 1) {
         'start',
         'end',
         'captions',
+        'createdAt',
+        'views',
       ],
       $embed: ['tags'],
       isDeleted: false,
@@ -108,6 +114,8 @@ async function bulkIndexSegments(segments) {
         high_tags: getEsTags(segment.tags, 8, 11),
         videoYtId: segment.videoYtId,
         captions: segment.captions,
+        createdAt: segment.createdAt,
+        views: segment.views || 0,
       },
       doc_as_upsert: true,
     },
