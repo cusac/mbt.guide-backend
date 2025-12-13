@@ -1,0 +1,26 @@
+{
+  "exportedAt": "2025-12-13T01:10:31.475Z",
+  "maxVideos": 250,
+  "collections": [
+    {
+      "name": "video",
+      "count": 250,
+      "file": "seed-data/video.json"
+    },
+    {
+      "name": "segment",
+      "count": 786,
+      "file": "seed-data/segment.json"
+    },
+    {
+      "name": "tag",
+      "count": 1786,
+      "file": "seed-data/tag.json"
+    },
+    {
+      "name": "segment_tag",
+      "count": 2682,
+      "file": "seed-data/segment_tag.json"
+    }
+  ]
+}

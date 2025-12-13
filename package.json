@@ -14,6 +14,7 @@
     "start-docker": "export API_COMMAND='npm run start' && bash run_server.sh",
     "seed": "node scripts/seed.js",
     "seed-docker": "export TASK_COMMAND='npm run seed' && bash run_server.sh",
+    "export-seed-data": "NODE_ENV=production node scripts/export-seed-data.js",
     "update-permissions": "node scripts/update-permissions.js",
     "update-permissions-docker": "export TASK_COMMAND='npm run update-permissions' && bash run_server.sh",
     "add-captions": "node scripts/add-captions.js",

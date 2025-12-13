@@ -409,3 +409,7 @@ test.js
 test*.json
 .env-docker copy
 mbt_db_dump_nozip/*
+mbt4-ssl-public-cert.cert
+.env-util
+.env-util copy
+.env-docker copy 2

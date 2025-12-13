@@ -222,8 +222,8 @@ const config = {
     policyPath: path.join(__dirname, '/../server/policies'),
     swaggerHost: {
       $filter: 'env',
-      production: process.env.SERVER_HOST,
-      $default: `${process.env.SERVER_HOST}:${process.env.SERVER_PORT}`,
+      production: process.env.SWAGGER_HOST || process.env.SERVER_HOST,
+      $default: process.env.SWAGGER_HOST || `${process.env.SERVER_HOST}:${process.env.SERVER_PORT}`,
     },
     authStrategy: {
       $filter: 'env',
